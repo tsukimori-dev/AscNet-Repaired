@@ -1,0 +1,32 @@
+name: Public snapshot safety
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-and-build:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Verify public snapshot boundary
+        shell: pwsh
+        run: .\tools\verify-public-snapshot.ps1
+
+      - name: Build source-only snapshot
+        shell: pwsh
+        run: dotnet build .\AscNet\AscNet.csproj -c Release
+
+      - name: Compile compatibility harness
+        shell: pwsh
+        run: dotnet build .\AscNet.Test\AscNet.Test.csproj -c Release
